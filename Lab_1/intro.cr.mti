@@ -1,0 +1,23 @@
+{C:/Users/jcasinas/OneDrive - Seattle University/Documents/ECEGR2022-main/Lab_1/tintro.vhd} {1 {vcom -work work -2002 -explicit -vopt -stats=none {C:/Users/jcasinas/OneDrive - Seattle University/Documents/ECEGR2022-main/Lab_1/tintro.vhd}
+Model Technology ModelSim SE-64 vcom 2021.2 Compiler 2021.04 Apr 14 2021
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Compiling entity testintro
+-- Compiling architecture only of testintro
+
+} {} {}} {C:/Users/jcasinas/OneDrive - Seattle University/Documents/ECEGR2022-main/Lab_1/introvhdl.vhd} {1 {vcom -work work -2002 -explicit -vopt -stats=none {C:/Users/jcasinas/OneDrive - Seattle University/Documents/ECEGR2022-main/Lab_1/introvhdl.vhd}
+Model Technology ModelSim SE-64 vcom 2021.2 Compiler 2021.04 Apr 14 2021
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Compiling entity intro
+-- Compiling architecture behavior of intro
+
+} {} {}}
