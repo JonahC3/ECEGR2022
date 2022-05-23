@@ -49,33 +49,48 @@ BEGIN
 		-- Wait 100 ns for global reset to finish
 		wait for 100 ns;
 
-		-- Start testing the ALU
+		-- Non-Immediate Value
 		datain_a <= X"01234567";	-- DataIn in hex
 		datain_b <= X"11223344";
 		control  <= "00000";	-- Control in binary (ADD and ADDI test)
 		wait for 20 ns; 			-- result = 0x124578AB  and zeroOut = 0
 		control  <= "00001";	-- Subtraction
-		wait for 20 ns;
+		wait for 20 ns; 			-- result = 0x124578AB  and zeroOut = 0
 		control <= "00010"; 	-- AND
-		wait for 20 ns;
+		wait for 20 ns; 			-- result = 0x124578AB  and zeroOut = 0
 		control <= "00011"; 	-- OR
-		wait for 20 ns;
-		control <= "00101";     -- Shift right by one
-		wait for 20 ns;
+		wait for 20 ns; 			-- result = 0x124578AB  and zeroOut = 0
+		control <= "00101"; 	-- Shift right by one
+		wait for 20 ns; 			-- result = 0x124578AB  and zeroOut = 0
 		control <= "00110";     -- Shift right by two
-		wait for 20 ns;
+		wait for 20 ns; 			-- result = 0x124578AB  and zeroOut = 0
 		control <= "00111";     -- Shift right by three
-		wait for 20 ns;
+		wait for 20 ns; 			-- result = 0x124578AB  and zeroOut = 0
 		control <= "01001";     -- Shift left by one
-		wait for 20 ns;
+		wait for 20 ns; 			-- result = 0x124578AB  and zeroOut = 0
 		control <= "01010";     -- Shift left by two
-		wait for 20 ns;
+		wait for 20 ns; 			-- result = 0x124578AB  and zeroOut = 0
 		control <= "01011";     -- Shift left by three
+		wait for 20 ns; 			-- result = 0x124578AB  and zeroOut = 0
+		
+		-- Immediate Values
+		datain_b <= X"00000123"; -- (Immediate value)
+		control <= "10000"; 	-- ADDI
+		wait for 20 ns; 		-- result = 0x124578AB  and zeroOut = 0
+		control <= "10010";	-- ANDI
+		wait for 20 ns; 		-- result = 0x124578AB  and zeroOut = 0
+		control <= "10011";	-- ORI
+		wait for 20 ns; 		-- result = 0x124578AB  and zeroOut = 0
+		control <= "10111";	-- SRLI by three
+		wait for 20 ns; 		-- result = 0x124578AB  and zeroOut = 0
+		control <= "11011";	-- SLLI by three
 		wait for 20 ns;
+			
+		-- Testing zero output
 		datain_a <= X"44332211";  -- New Data to test zero output
 		datain_b <= X"44332211";
-		control <= "00001";
-		wait for 20 ns;
+		control <= "00001";	-- Subtraction
+		wait for 20 ns; 		-- result = 0x124578AB  and zeroOut = 0
 
 
 		wait; -- will wait forever
