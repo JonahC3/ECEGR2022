@@ -130,7 +130,7 @@ end entity RAM;
 
 architecture staticRAM of RAM is
 
-   type ram_type is array (0 to 128) of std_logic_vector(31 downto 0); -- ram array 
+   type ram_type is array (0 to 127) of std_logic_vector(31 downto 0); -- ram array 
    signal i_ram : ram_type;
    signal temp_address: std_logic_vector(29 downto 0);
 
@@ -145,24 +145,18 @@ begin
       end loop;
     end if;
 
-    -- WRITING TO MEMORY
     if falling_edge(Clock) then
-	if WE = '1' and to_integer(unsigned(Address)) >= 0 and to_integer(unsigned(Address)) <= 127 then 
+	if WE = '1' then 
 	     i_ram(to_integer(unsigned(Address))) <= DataIn;
 	elsif WE = '0' then 
 	      temp_address <= address;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
 	end if;	
     end if;
- 
-    -- READING FROM MEMORY
-    if to_integer(unsigned(Address)) >= 0 and to_integer(unsigned(Address)) <= 127 then 
+
+    if rising_edge(Clock) then
 	if OE = '0' then 
 		DataOut <= i_ram(to_integer(unsigned(Address)));
-	else 
-		DataOut <= (others => 'Z');
 	end if;
-    else
-	DataOut <= (others => 'Z');
     end if;
 
   end process RamProc;
@@ -182,8 +176,8 @@ entity Registers is
          WriteReg: in std_logic_vector(4 downto 0);   -- The register you writing to
 	 WriteData: in std_logic_vector(31 downto 0); -- Data being written into the register 
 	 WriteCmd: in std_logic;                      -- Wrtie enable
-	 ReadData1: out std_logic_vector(31 downto 0); -- Data that was read out of register
-	 ReadData2: out std_logic_vector(31 downto 0)); -- Data that was read out of register
+	 ReadData1: out std_logic_vector(31 downto 0);
+	 ReadData2: out std_logic_vector(31 downto 0));
 end entity Registers;
 
 architecture remember of Registers is
@@ -210,9 +204,7 @@ architecture remember of Registers is
 
 
 begin
--- WRITING TO REGISTER --
-process(WriteData, WriteCmd) is
-begin
+process(WriteData, WriteCmd)
 	if WriteReg = "01010" and WriteCmd = '1' then 
 		enablew0 <= '1';
 	elsif WriteReg = "01011" and WriteCmd = '1' then 
@@ -229,77 +221,19 @@ begin
 		enablew6 <= '1';
 	elsif WriteReg = "10001" and WriteCmd = '1' then 
 		enablew7 <= '1';
-	else
-		enablew0 <= '0';
-		enablew1 <= '0';
-		enablew2 <= '0';
-		enablew3 <= '0';
-		enablew4 <= '0';
-		enablew5 <= '0';
-		enablew6 <= '0';
-		enablew7 <= '0'; 
 	end if;
-end process;
+end process
 
-    a0: register32 port map(Writedata, '0', '1', '1', enablew0, '0', '0', register_array(0));
-    a1: register32 port map(Writedata, '0', '1', '1', enablew1, '0', '0', register_array(1));
-    a2: register32 port map(Writedata, '0', '1', '1', enablew2, '0', '0', register_array(2));
-    a3: register32 port map(Writedata, '0', '1', '1', enablew3, '0', '0', register_array(3));
-    a4: register32 port map(Writedata, '0', '1', '1', enablew4, '0', '0', register_array(4));
-    a5: register32 port map(Writedata, '0', '1', '1', enablew5, '0', '0', register_array(5));
-    a6: register32 port map(Writedata, '0', '1', '1', enablew6, '0', '0', register_array(6));
-    a7: register32 port map(Writedata, '0', '1', '1', enablew7, '0', '0', register_array(7));
+    a0: register32(Writedata, 0, 1, 1, enablew0, 0, 0, register_array(0));
+    a1: register32(Writedata, 0, 1, 1, enablew1, 0, 0, register_array(1));
+    a2: register32(Writedata, 0, 1, 1, enablew2, 0, 0, register_array(2));
+    a3: register32(Writedata, 0, 1, 1, enablew3, 0, 0, register_array(3));
+    a4: register32(Writedata, 0, 1, 1, enablew4, 0, 0, register_array(4));
+    a5: register32(Writedata, 0, 1, 1, enablew5, 0, 0, register_array(5));
+    a6: register32(Writedata, 0, 1, 1, enablew6, 0, 0, register_array(6));
+    a7: register32(Writedata, 0, 1, 1, enablew7, 0, 0, register_array(7));
 
--- READING FROM REGISTER --
-process(ReadReg1) is 
-begin
-	if ReadReg1 = "01010" then 
-		ReadData1 <= register_array(0);
-	elsif ReadReg1 = "01011" then 
-		ReadData1 <= register_array(1);
-	elsif ReadReg1 = "01100" then 
-		ReadData1 <= register_array(2);
-	elsif ReadReg1 = "01101" then 
-		ReadData1 <= register_array(3);
-	elsif ReadReg1 = "01110" then 
-		ReadData1 <= register_array(4);
-	elsif ReadReg1 = "01111" then 
-		ReadData1 <= register_array(5);
-	elsif ReadReg1 = "10000" then 
-		ReadData1 <= register_array(6);
-	elsif ReadReg1 = "10001" then 
-		ReadData1 <= register_array(7);
-	elsif ReadReg1 <= "00000" then -- Hard Wired Zero Register
-		ReadData1 <= X"00000000";
-	else
-		ReadData1 <= (others => 'Z');
-	end if;
-end process; 
 
-process(ReadReg2) is 
-begin
-	if ReadReg2 = "01010" then 
-		ReadData2 <= register_array(0);
-	elsif ReadReg2 = "01011" then 
-		ReadData2 <= register_array(1);
-	elsif ReadReg2 = "01100" then 
-		ReadData2 <= register_array(2);
-	elsif ReadReg2 = "01101" then 
-		ReadData2 <= register_array(3);
-	elsif ReadReg2 = "01110" then 
-		ReadData2 <= register_array(4);
-	elsif ReadReg2 = "01111" then 
-		ReadData2 <= register_array(5);
-	elsif ReadReg2 = "10000" then 
-		ReadData2 <= register_array(6);
-	elsif ReadReg2 = "10001" then 
-		ReadData2 <= register_array(7);
-	elsif ReadReg2 <= "00000" then -- Hard Wired Zero Register
-		ReadData2 <= X"00000000";
-	else
-		ReadData2 <= (others => 'Z');
-	end if;
-end process; 
 end remember;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
