@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 --
 -- LAB #6 - Processor 
 --
@@ -85,86 +85,52 @@ architecture holistic of Processor is
 			co: out std_logic);
 	end component adder_subtracter;
 
-
--------------------SIGNALS------------------------
-
--- Program Counter
-signal Mux_to_PC: std_logic_vector(31 downto 0);
-signal PC_Out: std_logic_vector(31 downto 0);
-
--- Adder1
-signal carry1: std_logic;
-signal adder_1_out: std_logic_vector(31 downto 0);
-
--- Adder2
-signal carry2: std_logic;
-signal adder_2_out: std_logic_vector(31 downto 0);
-
--- Imm Gen
-signal ImmGen_out: std_logic_vector(31 downto 0);
-
--- BEQorBNE
-signal BEQorBNE_out: std_logic; 
-
--- Instruction memmory
-signal InstructMem_out: std_logic_vector(31 downto 0);
-
--- Control 
-signal branch: std_logic_vector(1 downto 0);
-signal memread: std_logic;
-signal memtoreg: std_logic;
-signal aluctrl: std_logic_vector(4 downto 0);
-signal memwrite: std_logic;
-signal alusrc: std_logic;
-signal regwrite: std_logic;
-signal immgen: std_logic_vector(1 downto 0);
-
--- Registers
-signal Mux_to_Registers: std_logic_vector(31 downto 0);
-signal read_data1: std_logic_vector(31 downto 0);
-signal read_data2: std_logic_vector(31 downto 0);
-
--- ALU
-signal Mux_to_ALU: std_logic_vector(31 downto 0);
-signal alu_out: std_logic_vector(31 downto 0);
-signal zero: std_logic;
-
--- RAM
-signal ram_out: std_logic_vector(31 downto 0);
-
--- Offset
-signal twobitoffset: std_logic_vector(31 downto 0);
-signal carry3: std_logic;
-
-
+	SIGNAL PC_adder_to_Mux, Branch_adder_to_Mux: std_logic_vector(31 downto 0);
+	SIGNAL PC_adder_co, Branch_adder_co, DataOffset_co: std_logic;		--These values are unused
+	SIGNAL PCin, PCout: std_logic_vector(31 downto 0);
+	SIGNAL ImmGenOut: std_logic_vector(31 downto 0);
+	SIGNAL InstructionOut: std_logic_vector(31 downto 0);
+	SIGNAL BranchMuxSelect: std_logic := '0';
+	SIGNAL Zero: std_logic;
+	SIGNAL Branch, ImmGen: std_logic_vector(1 downto 0);
+	SIGNAL ALUCtrl: std_logic_vector(4 downto 0);
+	SIGNAL MemRead, MemToReg, MemWrite, ALUSrc, RegWrite: std_logic;
+	SIGNAL WriteData: std_logic_vector(31 downto 0);
+	SIGNAL ALUInA, ALUInB, RegFileOutB, ALUResult: std_logic_vector(31 downto 0);
+	SIGNAL DataMemOut: std_logic_vector(31 downto 0);
+	SIGNAL ReadReg1, ReadReg2, DestReg: std_logic_vector(4 downto 0);
+	SIGNAL OffsetDataAddress: std_logic_vector(31 downto 0);
 begin
 
-	
-	daoffset: adder_subtracter port map(alu_out, "00010000000000000000000000000000", '1', twobitoffset, carry3);
+	ReadReg1 <= InstructionOut(19 downto 15);
+	ReadReg2 <= InstructionOut(24 downto 20);
+	DestReg <= InstructionOut(11 downto 7);
 
-	PC: ProgramCounter port map(reset, clock, Mux_to_PC, PC_Out);
-	adder1: adder_subtracter port map(PC_out, "00000000000000000000000000000100", '0', adder_1_out, carry1);
-	adder2: adder_subtracter port map(PC_out, ImmGen_out ,'0', adder_2_out, carry2);
-	muxpc: BusMux2to1 port map(BEQorBNE_out, adder_1_out, adder_2_out, Mux_to_PC);
-	Instruction_memory: InstructionRAM port map(reset, clock, PC_Out(31 downto 2), InstructMem_out);
-	ctrl: Control port map(clock, InstructMem_out(6 downto 0), InstructMem_out(14 downto 12), InstructMem_out(31 downto 25), branch, memread, memtoreg, aluctrl, memwrite, alusrc, regwrite, immgen);
-	reg: Registers port map(InstructMem_out(19 downto 15), InstructMem_out(24 downto 20) , InstructMem_out(11 downto 7), Mux_to_Registers, regwrite, read_data1, read_data2);
-	muxALU: BusMux2to1 port map(alusrc, read_data2, ImmGen_out, Mux_to_ALU);
-	aluu: ALU port map(read_data1, Mux_to_ALU, aluctrl, zero, alu_out);
-	data_memory: RAM port map(reset, clock, memread, memwrite, twobitoffset(31 downto 2), read_data2, ram_out);
-	muxregisters: BusMux2to1 port map(memtoreg, alu_out, ram_out, Mux_to_Registers);
 
-	ImmGen_out(31 downto 12) <= (others=>InstructMem_out(31)) when immgen = "00" else
-				    (others=>InstructMem_out(31)) when immgen = "01" else
-				    (others=>InstructMem_out(31)) when immgen = "10" else
-				    InstructMem_out(31 downto 12);
+	PC: ProgramCounter PORT MAP(reset, clock, PCin, PCout);
+	PC_adder: adder_subtracter PORT MAP(PCout, x"00000004", '0', PC_adder_to_Mux, PC_adder_co);
+	Branch_adder: adder_subtracter PORT MAP(PCout, ImmGenOut, '0', Branch_adder_to_Mux, Branch_adder_co);
+	PCMux: BusMux2to1 PORT MAP(BranchMuxSelect, PC_adder_to_Mux, Branch_adder_to_Mux, PCin);
+	IMEM: InstructionRAM PORT MAP(reset, clock, PCout(31 downto 2), InstructionOut);
+	ControlBlock: Control PORT MAP(clock, InstructionOut(6 downto 0), InstructionOut(14 downto 12), InstructionOut(31 downto 25), Branch, MemRead, MemtoReg, ALUCtrl, MemWrite, ALUSrc, RegWrite, ImmGen);
+	RegFile: Registers PORT MAP(ReadReg1, ReadReg2, DestReg, WriteData, RegWrite, ALUInA, RegFileOutB);
+	ALUInputMux: BusMux2to1 PORT MAP(ALUSrc, RegFileOutB, ImmGenOut, ALUInB);
+	MainALU: ALU PORT MAP(ALUInA, ALUInB, ALUCtrl, Zero, ALUResult);
+	DMEM: RAM PORT MAP(reset, clock, MemRead, MemWrite, OffsetDataAddress(31 downto 2), RegFileOutB, DataMemOut);
+	ALUOutMux: BusMux2to1 PORT MAP(MemToReg, ALUResult, DataMemOut, WriteData);
 
-	ImmGen_out(11 downto 0) <= InstructMem_out(31 downto 20) when immgen = "00" else
-				   InstructMem_out(31 downto 25) & InstructMem_out(11 downto 7) when immgen = "01" else
-				   InstructMem_out(7) & InstructMem_out(30 downto 25) & InstructMem_out(11 downto 8) & '0' when immgen = "10" else
-				   (others=>'0');
+	DataOffset: adder_subtracter PORT MAP(ALUResult, x"10000000", '1', OffsetDataAddress, DataOffset_co);
 
-	BEQorBNE_out <= '1' when (branch = "01" and zero = '1') or (branch = "10" and zero = '0') else -- BEQ -- BNE  
-                        '0';
+	ImmGenOut(31 downto 12) <= (Others=>InstructionOut(31)) WHEN ImmGen = "00" ELSE
+				   (Others=>InstructionOut(31)) WHEN ImmGen = "01" ELSE
+				   (Others=>InstructionOut(31)) WHEN ImmGen = "10" ELSE
+				   InstructionOut(31 downto 12);
+	ImmGenOut(11 Downto 0) <= InstructionOut(31 downto 20) WHEN ImmGen = "00" ELSE
+				  InstructionOut(31 downto 25) & InstructionOut(11 downto 7) WHEN ImmGen = "01" ELSE
+				  InstructionOut(7) & InstructionOut(30 downto 25) & InstructionOut(11 downto 8) & '0' WHEN ImmGen = "10" ELSE
+				  (OTHERS=>'0');
 
+	BranchMuxSelect <= '1' WHEN (Branch = "01" AND Zero = '1') OR (Branch = "10" AND Zero = '0') ELSE
+			   '0';
+				   
 end holistic;

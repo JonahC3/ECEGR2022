@@ -109,7 +109,7 @@ begin
 	-- Process for ALUSrc line
 	process(clk, opcode, funct3, funct7)is 
 	begin
-		if opcode = "0110011" or opcode = "1100011"  or opcode = "XXXXXXX" then ALUSrc <= '0'; -- Specifies registers 
+		if opcode = "0110011"  or opcode = "1100011"  or opcode = "XXXXXXX" then ALUSrc <= '0'; -- Specifies registers 
 		else ALUSrc <= '1'; -- Specifies Immedieates 
 		end if;
 	end process;
